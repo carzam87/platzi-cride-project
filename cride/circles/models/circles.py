@@ -21,6 +21,12 @@ class Circle(CRideModel):
     about = models.CharField('circle_description', max_length=255)
     picture = models.ImageField(upload_to='circles/pictures', blank=True, null=True)
 
+    members = models.ManyToManyField(
+        "users.User",
+        through='circles.Membership',
+        through_fields=('circle', 'user')
+    )
+
     # Stats
     rides_offered = models.PositiveIntegerField(default=0)
     rides_taken = models.PositiveIntegerField(default=0)
@@ -29,18 +35,18 @@ class Circle(CRideModel):
         'verified circle',
         default=False,
         help_text='Verified circles are also known as official communities'
-        )
+    )
 
     is_public = models.BooleanField(
         default=True,
         help_text='Public circles are listed in the main page so everyone know about their existence'
-        )
+    )
 
     is_limited = models.BooleanField(
         'limited',
         default=False,
         help_text='Limited number of circles can grow up to a fixed number of members'
-        )
+    )
     members_limit = models.PositiveIntegerField(
         default=0,
         help_text='If circle is limited, this will be then limit on the number of members.'
