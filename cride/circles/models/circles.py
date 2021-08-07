@@ -23,6 +23,7 @@ class Circle(CRideModel):
 
     members = models.ManyToManyField(
         "users.User",
+        related_name="+",
         through='circles.Membership',
         through_fields=('circle', 'user')
     )

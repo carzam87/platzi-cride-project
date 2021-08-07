@@ -17,6 +17,8 @@ class CircleModelSerializer(serializers.ModelSerializer):
         max_value=32000
     )
 
+    members_count = serializers.IntegerField(read_only=True)
+
     is_limited = serializers.BooleanField(default=False)
 
     class Meta:

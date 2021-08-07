@@ -7,6 +7,11 @@ from rest_framework.response import Response
 # Permissions
 from rest_framework.permissions import IsAuthenticated
 from cride.circles.permissions import IsCircleAdmin
+
+# Filters
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 # Models
 from cride.circles.models import Circle, Membership
 
@@ -24,6 +29,13 @@ class CircleViewSet(mixins.CreateModelMixin,
     serializer_class = CircleModelSerializer
     lookup_field = 'slug_name'
 
+    # Filters
+    filter_backends = (SearchFilter, OrderingFilter, DjangoFilterBackend)
+    search_fields = ('slug_name', 'name')
+    ordering_fields = ('rides_offered', 'rides_taken', 'name', 'created', 'member_limit')
+    ordering = ('-members_count', '-rides_offered', '-rides_taken')
+    filter_fields = ('verified', 'is_limited')
+
     def get_permissions(self):
         """Assign permissions based on action"""
         permissions = [IsAuthenticated]
@@ -35,7 +47,7 @@ class CircleViewSet(mixins.CreateModelMixin,
         """Restrict list to public only"""
         queryset = Circle.objects.all()
         if self.action == 'list':
-            return queryset.filter(is_public=True)
+            return queryset.annotate(members_count=Count('members_set')).filter(is_public=True)
         return queryset
 
     def retrieve(self, request, *args, **kwargs):

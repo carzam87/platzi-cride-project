@@ -3,6 +3,8 @@
 # Django REST Framework
 from rest_framework import mixins, viewsets
 from rest_framework.generics import get_object_or_404
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 # Permissions
 from rest_framework.permissions import IsAuthenticated
@@ -54,3 +56,22 @@ class MembershipViewSet(mixins.ListModelMixin,
         """Disable membership"""
         instance.is_active = False
         instance.save()
+
+    @action(detail=True, methods=['GET'])
+    def invitations(self, request, *args, **kwargs):
+        """Retrieve a members's invitations breakdown
+
+        will return a list containing all the members that have
+        used its invitations and another list containing the
+        invitations that haven't being used yet
+        """
+        invited_members = Membership.objects.filter(
+            circle=self.circle,
+            invited_by=request.user,
+            is_active=True
+        )
+
+        data = {
+            'used_invitations': MembershipModelSerializer(invited_members, many=True).data
+        }
+        return Response(data)
