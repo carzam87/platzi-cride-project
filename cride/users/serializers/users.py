@@ -4,9 +4,6 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, password_validation
 from django.core.validators import RegexValidator
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils import timezone
 
 # Django REST Framework
 from rest_framework import serializers
@@ -16,12 +13,14 @@ from rest_framework.validators import UniqueValidator
 # Models
 from cride.users.models import User, Profile
 
-# Utilities
-from datetime import timedelta
-import jwt
+# Tasks
+from cride.taskapp.tasks import send_confirmation_email
 
 # Serializers
 from cride.users.serializers import ProfileModelSerializer
+
+# Utilities
+import jwt
 
 
 class UserModelSerializer(serializers.ModelSerializer):
@@ -41,38 +40,6 @@ class UserModelSerializer(serializers.ModelSerializer):
             'phone_number',
             'profile'
         )
-
-
-class UserSendVerificationEmail():
-    def gen_verification_token(self, user):
-        """Create JWT token that the user can use to verify its account"""
-        exp_date = timezone.now() + timedelta(days=3)
-        payload = {
-            'user': user.username,
-            'exp': int(exp_date.timestamp()),
-            'type': 'email_confirmation'
-        }
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-        return token
-
-    def send(self, email):
-        """Send account verification link to given user."""
-
-        try:
-            user = User.objects.get(email=email)
-            verification_token = self.gen_verification_token(user)
-            subject = 'Welcome @{}! verfify your account to start using Comparte Ride'.format(user.username)
-            from_email = 'Comparte Ride <noreply@comparteride.com>'
-            content = render_to_string(
-                'emails/users/account_verification.html',
-                {'token': verification_token, 'user': user}
-            )
-            msg = EmailMultiAlternatives(subject, content, from_email, [user.email])
-            msg.attach_alternative(content, 'text/html')
-            msg.send()
-
-        except Exception as ex:
-            raise ex
 
 
 class UserSignUpSerializer(serializers.Serializer):
@@ -122,8 +89,7 @@ class UserSignUpSerializer(serializers.Serializer):
         data.pop('password_confirmation')
         user = User.objects.create_user(**data, is_verified=False)
         Profile.objects.create(user=user)
-        email_sender = UserSendVerificationEmail()
-        email_sender.send(user.email)
+        send_confirmation_email.delay(user_pk=user.pk)
         return user
 
 

@@ -8,5 +8,9 @@
     ],
     "python.analysis.disabled": [
       "unresolved-import"
+    ],
+    "python.analysis.extraPaths": [
+      "./app",
+      "./src"
     ]
 }

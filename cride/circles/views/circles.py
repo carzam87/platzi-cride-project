@@ -1,5 +1,8 @@
 """Circles View."""
 
+# Django
+from django.db.models import Count
+
 # Django REST Framework
 from rest_framework import mixins, viewsets
 from rest_framework.response import Response
@@ -13,7 +16,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 # Models
-from cride.circles.models import Circle, Membership
+from cride.circles.models import Membership
 
 # Serializers
 from cride.circles.serializers import Circle, CircleModelSerializer
@@ -23,6 +26,7 @@ class CircleViewSet(mixins.CreateModelMixin,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin,
                     mixins.ListModelMixin,
+                    mixins.DestroyModelMixin,
                     viewsets.GenericViewSet):
     """Circle view set. """
 
@@ -47,7 +51,7 @@ class CircleViewSet(mixins.CreateModelMixin,
         """Restrict list to public only"""
         queryset = Circle.objects.all()
         if self.action == 'list':
-            return queryset.annotate(members_count=Count('members_set')).filter(is_public=True)
+            return queryset.annotate(members_count=Count('members')).filter(is_public=True)
         return queryset
 
     def retrieve(self, request, *args, **kwargs):

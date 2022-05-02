@@ -51,3 +51,9 @@ class User(CRideModel, AbstractUser):
 
     def get_short_name(self):
         return self.username
+
+    def get_full_name(self):
+        return '{first_name} {last_name}'.format(
+            first_name=self.first_name,
+            last_name=self.last_name
+        )

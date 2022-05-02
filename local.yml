@@ -19,6 +19,7 @@ services:
       - ./.envs/.local/.postgres
     ports:
       - "8000:8000"
+      - "3000:3000"
     command: /start
 
   postgres:
@@ -31,7 +32,8 @@ services:
       - local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
-
+    ports:
+        - "5432:5432"
   redis:
     image: redis:3.2
 
@@ -41,7 +43,7 @@ services:
     depends_on:
       - redis
       - postgres
-      
+
     ports: []
     command: /start-celeryworker
 
@@ -51,7 +53,7 @@ services:
     depends_on:
       - redis
       - postgres
-      
+
     ports: []
     command: /start-celerybeat
 

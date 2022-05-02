@@ -2,7 +2,6 @@
 
 # Django REST Framework
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
 # Models
 from cride.circles.models import Circle
@@ -34,7 +33,8 @@ class CircleModelSerializer(serializers.ModelSerializer):
             'verified',
             'is_public',
             'is_limited',
-            'members_limit'
+            'members_limit',
+            'members_count'
             )
 
         read_only_fields = (

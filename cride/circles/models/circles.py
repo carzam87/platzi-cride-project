@@ -59,4 +59,4 @@ class Circle(CRideModel):
 
     class Meta(CRideModel.Meta):
         """Meta class."""
-        ordering = ['-rides_taken', '-rides_offered']
+        ordering = ('name',)

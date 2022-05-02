@@ -14,8 +14,7 @@ from cride.users.serializers import (
     AccountVerificationSerializer,
     UserLoginSerializer,
     UserModelSerializer,
-    UserSignUpSerializer,
-    UserSendVerificationEmail
+    UserSignUpSerializer
 )
 from cride.circles.serializers import CircleModelSerializer
 from cride.users.serializers import UserModelSerializer
@@ -24,11 +23,15 @@ from cride.users.serializers.profiles import ProfileModelSerializer
 from cride.users.models.users import User
 from cride.circles.models import Circle
 
+# Celery
+from cride.taskapp.tasks import send_confirmation_email
+
 
 class UserViewSet(
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
-    viewsets.GenericViewSet
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin
 ):
     """User viewset.
 
@@ -80,11 +83,11 @@ class UserViewSet(
 
     @action(detail=False, url_path='send-confirmation-email', methods=['post'])
     def send_confirmation_email(self, request):
-        email_sender = UserSendVerificationEmail()
+
         user = User.objects.get(email=request.data['email'])
-        verification_token = email_sender.gen_verification_token(user)
-        data = {'verification_token': verification_token}
-        return Response(data, status=status.HTTP_200_OK)
+        send_confirmation_email.delay(user_pk=user.pk)
+
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['put', 'patch'])
     def profile(self, request, *args, **kwargs):
